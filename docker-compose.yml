@@ -1,0 +1,41 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: PROG_API/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - UseInMemoryDatabase=true
+      - ASPNETCORE_ENVIRONMENT=Development
+      - BlobStorage__UseLocalStorage=true
+      - BlobStorage__ConnectionString=${AZURE_STORAGE_CONNECTION_STRING:-}
+    volumes:
+      - raceday-blob-data:/app/BlobStorage
+  web:
+    build:
+      context: .
+      dockerfile: PROG_MVC/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - Api__BaseUrl=http://api:8080/
+      - Api__PublicBaseUrl=http://localhost:5001/
+    depends_on:
+      - api
+
+# Optional: use SQL Server instead of in-memory storage.
+# Uncomment the sqlserver service and set UseInMemoryDatabase=false,
+# ConnectionStrings__DefaultConnection=Server=sqlserver;Database=RaceDayDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True
+# on the api service.
+#  sqlserver:
+#    image: mcr.microsoft.com/mssql/server:2022-latest
+#    environment:
+#      - ACCEPT_EULA=Y
+#      - SA_PASSWORD=Your_password123
+#    ports:
+#      - "1433:1433"
+
+volumes:
+  raceday-blob-data:

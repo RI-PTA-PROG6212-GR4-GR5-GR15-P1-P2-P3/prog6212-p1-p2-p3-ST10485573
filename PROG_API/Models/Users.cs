@@ -37,7 +37,15 @@ public class Users
 
     public DateTime? DateOfBirth { get; set; }
 
+    public string? ProfilePictureUrl { get; set; }
+
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Consecutive failed login attempts before the account is locked.</summary>
+    public int FailedLoginCount { get; set; }
+
+    /// <summary>UTC time until which the account is locked out from logging in.</summary>
+    public DateTime? LockoutEndUtc { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

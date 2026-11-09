@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#198754"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="60" height="60" rx="12" fill="url(#g)"/>
+  <path d="M15 45 L30 15 L45 45 Z" fill="#fff"/>
+  <path d="M22 35 L38 35" stroke="#198754" stroke-width="3" stroke-linecap="round"/>
+  <text x="70" y="40" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700" fill="#14532d">RaceDay</text>
+</svg>

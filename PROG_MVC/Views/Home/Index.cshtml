@@ -1,0 +1,66 @@
+@model List<EventDto>
+@{
+    ViewData["Title"] = "Find your next start line";
+}
+
+<section class="hero-panel mb-5">
+    <div class="hero-copy">
+        <span class="eyebrow">MAKE EVERY MILE COUNT</span>
+        <h1>Find your next<br /><span>start line.</span></h1>
+        <p>Discover great local races, choose your distance and get out there.</p>
+        <a class="btn btn-light btn-lg rounded-pill px-4" href="#events">Explore events <span aria-hidden="true">↓</span></a>
+    </div>
+    <div class="hero-mark" aria-hidden="true"><span>RD</span><i>↗</i></div>
+    <div class="hero-stats">
+        <div><strong>@Model.Count</strong><span>events to explore</span></div>
+        <div><strong>01</strong><span>community, every pace</span></div>
+    </div>
+</section>
+
+<section id="events" class="events-section">
+    <div class="section-heading">
+        <div><span class="eyebrow">ON THE CALENDAR</span><h2>Upcoming events</h2></div>
+        <span class="section-note">Pick a race. Make a day of it.</span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state"><span class="empty-icon">↗</span><h3>Your next race is out there</h3><p>There are no published events right now. Check back soon.</p></div>
+    }
+    else
+    {
+        <div class="event-grid">
+        @foreach (var ev in Model)
+        {
+            <article class="event-card">
+                <div class="event-art @(ev.Id % 3 == 0 ? "event-art-orange" : ev.Id % 3 == 1 ? "event-art-green" : "event-art-blue")">
+                    @if (!string.IsNullOrEmpty(ev.BannerImageUrl))
+                    {
+                        <img src="@AssetUrl.Resolve(ev.BannerImageUrl)" alt="@ev.Name" />
+                    }
+                    else
+                    {
+                        <span class="art-number">@(ev.DistanceKm.ToString("0.#"))<small>KM</small></span>
+                        <span class="art-label">RACEDAY / @ev.EventType.ToUpperInvariant()</span>
+                    }
+                    <span class="date-chip"><strong>@ev.EventDate.ToString("dd")</strong><span>@ev.EventDate.ToString("MMM").ToUpperInvariant()</span></span>
+                </div>
+                <div class="event-content">
+                    <div class="event-meta"><span>@ev.Location</span><span>@ev.DistanceKm.ToString("0.#") km</span></div>
+                    <h3>@ev.Name</h3>
+                    <p>@ev.Description</p>
+                    <div class="event-footer">
+                        <span class="entry-count">@ev.EnrolmentCount entered</span>
+                        <a class="arrow-link" asp-controller="Participant" asp-action="Details" asp-route-id="@ev.Id" aria-label="View @ev.Name">View race <span aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+            </article>
+        }
+        </div>
+    }
+</section>
+
+<section class="join-banner mt-5">
+    <div><span class="eyebrow">YOUR RACE, YOUR PACE</span><h2>Big goals start with one entry.</h2><p>Create an account to join the community and keep your race plans in one place.</p></div>
+    <a class="btn btn-dark rounded-pill px-4" asp-controller="Auth" asp-action="Register">Join RaceDay <span aria-hidden="true">↗</span></a>
+</section>

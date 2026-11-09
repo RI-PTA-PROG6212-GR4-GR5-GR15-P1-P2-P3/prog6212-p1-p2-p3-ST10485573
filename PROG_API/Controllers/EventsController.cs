@@ -42,7 +42,8 @@ public class EventsController : ControllerBase
             .Include(e => e.Organiser)
             .Include(e => e.Venue)
             .Include(e => e.Categories)
-            .Where(e => e.IsActive)
+                .ThenInclude(c => c.Enrolments)
+            .Where(e => e.IsActive && e.Status == "Published" && e.EventDate >= DateTime.UtcNow.Date)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(province))
@@ -87,6 +88,8 @@ public class EventsController : ControllerBase
                 EventType = "Run",
                 OrganiserId = e.OrganiserId,
                 OrganiserName = e.Organiser.FullName,
+                BannerImageUrl = e.BannerImageUrl,
+                EnrolmentCount = e.Categories.SelectMany(c => c.Enrolments).Count(),
                 IsActive = e.IsActive,
                 CreatedAt = e.CreatedAt,
                 UpdatedAt = e.UpdatedAt,
@@ -119,7 +122,8 @@ public class EventsController : ControllerBase
             .Include(e => e.Organiser)
             .Include(e => e.Venue)
             .Include(e => e.Categories)
-            .Where(e => e.OrganiserId == organiserId)
+                .ThenInclude(c => c.Enrolments)
+            .Where(e => e.OrganiserId == organiserId && e.IsActive)
             .OrderByDescending(e => e.EventDate)
             .Select(e => new EventDto
             {
@@ -136,6 +140,8 @@ public class EventsController : ControllerBase
                 EventType = "Run",
                 OrganiserId = e.OrganiserId,
                 OrganiserName = e.Organiser.FullName,
+                BannerImageUrl = e.BannerImageUrl,
+                EnrolmentCount = e.Categories.SelectMany(c => c.Enrolments).Count(),
                 IsActive = e.IsActive,
                 CreatedAt = e.CreatedAt,
                 UpdatedAt = e.UpdatedAt,
@@ -167,6 +173,7 @@ public class EventsController : ControllerBase
             .Include(e => e.Organiser)
             .Include(e => e.Venue)
             .Include(e => e.Categories)
+                .ThenInclude(c => c.Enrolments)
             .FirstOrDefaultAsync(e => e.Id == eventId && e.IsActive);
 
         if (eventEntity is null)
@@ -294,6 +301,8 @@ public class EventsController : ControllerBase
             EventType = "Run",
             OrganiserId = eventEntity.OrganiserId,
             OrganiserName = eventEntity.Organiser?.FullName ?? string.Empty,
+            BannerImageUrl = eventEntity.BannerImageUrl,
+            EnrolmentCount = eventEntity.Categories.SelectMany(c => c.Enrolments).Count(),
             IsActive = eventEntity.IsActive,
             CreatedAt = eventEntity.CreatedAt,
             UpdatedAt = eventEntity.UpdatedAt,

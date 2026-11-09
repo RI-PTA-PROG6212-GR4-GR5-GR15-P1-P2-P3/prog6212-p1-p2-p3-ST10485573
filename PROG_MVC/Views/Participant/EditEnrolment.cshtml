@@ -1,0 +1,38 @@
+@model EnrollmentDto
+@{
+    ViewData["Title"] = "Edit Enrolment";
+    var enrolment = (EnrollmentDto)ViewBag.Enrolment;
+    var categories = (List<EventCategoryDto>)ViewBag.Categories;
+}
+<h2>Edit Enrolment</h2>
+<div class="mb-3">
+    <strong>Event:</strong> @enrolment.EventName<br />
+    <span class="text-muted">Bib number: @enrolment.BibNumber</span>
+</div>
+
+<form asp-action="EditEnrolment" asp-route-id="@Model.Id" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3">
+        <label for="CategoryId" class="form-label">Category</label>
+        <select name="CategoryId" class="form-select" required>
+            @foreach (var c in categories)
+            {
+                if (c.Id == Model.CategoryId)
+                {
+                    <option value="@c.Id" selected>@c.Name (@c.Distance km) — @c.Price.ToString("R 0.00")</option>
+                }
+                else
+                {
+                    <option value="@c.Id">@c.Name (@c.Distance km) — @c.Price.ToString("R 0.00")</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="BibNumber" class="form-label">Bib Number (optional override)</label>
+        <input type="text" name="BibNumber" value="@Model.BibNumber" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-success">Save Changes</button>
+    <a class="btn btn-secondary" asp-action="MyEvents">Cancel</a>
+</form>

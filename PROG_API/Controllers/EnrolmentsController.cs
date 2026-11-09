@@ -170,6 +170,79 @@ public class EnrolmentsController : ControllerBase
     }
 
     [Authorize(Roles = "Participant")]
+    [HttpPut("enrolments/{enrolmentId:int}")]
+    public async Task<ActionResult<EnrollmentDto>> UpdateEnrollment(int enrolmentId, [FromBody] EnrollmentUpdateRequest request, CancellationToken ct)
+    {
+        var userId = GetCurrentUserId();
+
+        var enrolment = await _context.Enrolments
+            .Include(e => e.Category)
+                .ThenInclude(c => c.Event)
+            .FirstOrDefaultAsync(e => e.Id == enrolmentId && e.ParticipantId == userId, ct);
+
+        if (enrolment is null)
+        {
+            return NotFound(new { message = "Enrolment not found for this user." });
+        }
+
+        if (enrolment.Category.Event.RegistrationDeadline <= DateTime.UtcNow)
+        {
+            return BadRequest(new { message = "Registration deadline has passed." });
+        }
+
+        var newCategory = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.EventId == enrolment.Category.EventId, ct);
+
+        if (newCategory is null || !newCategory.IsActive)
+        {
+            return BadRequest(new { message = "Selected category is inactive or invalid for this event." });
+        }
+
+        if (request.CategoryId != enrolment.CategoryId)
+        {
+            var duplicate = await _context.Enrolments.AnyAsync(e =>
+                e.ParticipantId == userId
+                && e.Id != enrolmentId
+                && e.Category.EventId == enrolment.Category.EventId
+                && e.Status != "Cancelled", ct);
+
+            if (duplicate)
+            {
+                return Conflict(new { message = "You already have an active enrolment for this event." });
+            }
+        }
+
+        enrolment.CategoryId = request.CategoryId;
+        if (!string.IsNullOrWhiteSpace(request.BibNumber))
+        {
+            enrolment.BibNumber = request.BibNumber.Trim();
+        }
+
+        await _context.SaveChangesAsync(ct);
+
+        var stored = await _context.Enrolments
+            .AsNoTracking()
+            .Include(e => e.Participant)
+            .Include(e => e.Category)
+                .ThenInclude(c => c.Event)
+            .FirstAsync(e => e.Id == enrolmentId, ct);
+
+        return Ok(new EnrollmentDto
+        {
+            Id = stored.Id,
+            UserId = stored.ParticipantId,
+            UserFullName = stored.Participant.FullName,
+            EventId = stored.Category.EventId,
+            EventName = stored.Category.Event.Name,
+            CategoryId = stored.CategoryId,
+            CategoryName = stored.Category.Name,
+            Status = stored.Status,
+            BibNumber = stored.BibNumber,
+            EnrolledAt = stored.EnrolmentDate
+        });
+    }
+
+    [Authorize(Roles = "Participant")]
     [HttpDelete("enrolments/{enrolmentId:int}")]
     public async Task<IActionResult> CancelEnrollment(int enrolmentId)
     {

@@ -1,0 +1,77 @@
+@model List<EnrollmentDto>
+@{
+    ViewData["Title"] = "Capture Results";
+    var eventId = (int)(ViewBag.EventId ?? 0);
+    var results = ViewBag.Results as List<ResultDto> ?? new();
+}
+<h2>Capture Results</h2>
+<h4>Existing Results</h4>
+@if (results.Any())
+{
+    <table class="table table-sm">
+        <thead><tr><th>Participant</th><th>Finish Time</th><th>Position</th><th>Status</th><th>Edit</th></tr></thead>
+        <tbody>
+        @foreach (var r in results)
+        {
+            <tr>
+                <td>@r.UserFullName</td>
+                <td>@(r.FinishTime?.ToString() ?? "-")</td>
+                <td>@(r.Position?.ToString() ?? "-")</td>
+                <td>@r.Status</td>
+                <td>
+                    <form asp-action="EditResult" method="post" class="row g-1">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="eventId" value="@eventId" />
+                        <input type="hidden" name="resultId" value="@r.Id" />
+                        <div class="col"><input name="finishTimeText" class="form-control form-control-sm" placeholder="hh:mm:ss" value="@(r.FinishTime?.ToString())" /></div>
+                        <div class="col"><input name="position" class="form-control form-control-sm" placeholder="Pos" type="number" value="@r.Position" /></div>
+                        <div class="col">
+                            <select name="status" class="form-select form-select-sm">
+                                <option selected="@(r.Status == "Finished")">Finished</option>
+                                <option selected="@(r.Status == "DNF")">DNF</option>
+                                <option selected="@(r.Status == "DSQ")">DSQ</option>
+                            </select>
+                        </div>
+                        <div class="col"><button class="btn btn-sm btn-success" type="submit">Save</button></div>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">No results captured yet.</div>
+}
+<h4>Capture New</h4>
+<table class="table">
+    <thead><tr><th>Participant</th><th>Category</th><th>Status</th><th>Capture</th></tr></thead>
+    <tbody>
+    @foreach (var e in Model)
+    {
+        <tr>
+            <td>@e.UserFullName</td>
+            <td>@e.CategoryName</td>
+            <td>@e.Status</td>
+            <td>
+                <form asp-action="CaptureResult" method="post" class="row g-1">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="eventId" value="@eventId" />
+                    <input type="hidden" name="enrollmentId" value="@e.Id" />
+                    <div class="col"><input name="finishTimeText" class="form-control form-control-sm" placeholder="hh:mm:ss" /></div>
+                    <div class="col"><input name="position" class="form-control form-control-sm" placeholder="Pos" type="number" /></div>
+                    <div class="col">
+                        <select name="status" class="form-select form-select-sm">
+                            <option>Finished</option>
+                            <option>DNF</option>
+                            <option>DSQ</option>
+                        </select>
+                    </div>
+                    <div class="col"><button class="btn btn-sm btn-success" type="submit">Save</button></div>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -31,6 +31,7 @@ public record LoginRequest
 public record UpdateProfileRequest
 {
     public string? FullName { get; set; }
+    public string? Email { get; set; }
     public string? Phone { get; set; }
     public DateTime? DateOfBirth { get; set; }
 }
@@ -49,6 +50,7 @@ public record UserDto
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    public string? ProfilePictureUrl { get; set; }
     public DateTime? DateOfBirth { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -83,6 +85,8 @@ public record EventDto
     public string EventType { get; set; } = string.Empty;
     public int OrganiserId { get; set; }
     public string OrganiserName { get; set; } = string.Empty;
+    public string? BannerImageUrl { get; set; }
+    public int EnrolmentCount { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -127,6 +131,12 @@ public record EnrollmentCreateRequest
     public string BibNumber { get; set; } = string.Empty;
 }
 
+public record EnrollmentUpdateRequest
+{
+    public int CategoryId { get; set; }
+    public string BibNumber { get; set; } = string.Empty;
+}
+
 public record EnrollmentDto
 {
     public int Id { get; set; }
@@ -155,10 +165,13 @@ public record ResultDto
     public int Id { get; set; }
     public int EnrollmentId { get; set; }
     public int UserId { get; set; }
+    public int EventId { get; set; }
     public int CapturedBy { get; set; }
     public string UserFullName { get; set; } = string.Empty;
     public string EventName { get; set; } = string.Empty;
+    public DateTime EventDate { get; set; }
     public string CategoryName { get; set; } = string.Empty;
+    public int TotalFinishers { get; set; }
     public TimeSpan? FinishTime { get; set; }
     public int? Position { get; set; }
     public string Status { get; set; } = string.Empty;

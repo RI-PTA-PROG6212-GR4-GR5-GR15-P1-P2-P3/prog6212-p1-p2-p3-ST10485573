@@ -36,6 +36,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<BlobStorageService>();
 
 var configuredJwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(configuredJwtKey) && !builder.Environment.IsDevelopment())
@@ -113,6 +114,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+var blobRootFolder = builder.Configuration["BlobStorage:RootPath"] ?? "BlobStorage";
+var blobRoot = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, blobRootFolder));
+Directory.CreateDirectory(blobRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(blobRoot),
+    RequestPath = "/blob"
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

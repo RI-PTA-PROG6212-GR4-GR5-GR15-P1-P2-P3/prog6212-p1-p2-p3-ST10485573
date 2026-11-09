@@ -48,6 +48,10 @@ public class UsersController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (System.ComponentModel.DataAnnotations.ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("me/password")]

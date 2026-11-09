@@ -1,0 +1,27 @@
+@model List<PaymentDto>
+@{
+    ViewData["Title"] = "My Payments";
+}
+<h2>My Payments</h2>
+@if (!Model.Any())
+{
+    <div class="empty-state"><h3>No payment records yet</h3><p>Once you have an entry, you can record its payment from My Events.</p><a class="btn btn-success rounded-pill" asp-controller="Participant" asp-action="MyEvents">Go to My Events</a></div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead><tr><th>Enrolment</th><th>Amount</th><th>Date</th><th>Method</th><th>Status</th></tr></thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.EnrolmentId</td>
+                <td>@p.Amount.ToString("R 0.00")</td>
+                <td>@p.PaymentDate.ToString("dd MMM yyyy")</td>
+                <td>@p.Method</td>
+                <td><span class="badge @((p.Status ?? "").ToLower() == "paid" ? "bg-success" : "bg-warning")">@p.Status</span></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

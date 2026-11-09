@@ -1,0 +1,90 @@
+@model List<EventDto>
+@{ ViewData["Title"] = "Organiser Dashboard"; }
+<section class="page-intro dashboard-intro">
+    <div><span class="eyebrow">RACEDAY ORGANISER</span><h1>Your dashboard</h1><p>Keep your events moving, from the first entry to the finish line.</p></div>
+    <a class="btn btn-success rounded-pill px-4" asp-action="CreateEvent">+ Create event</a>
+</section>
+<div class="row g-3 mb-4 dashboard-stats">
+    <div class="col-md-4">
+        <div class="card stat-card stat-green">
+            <div class="card-body">
+                <span>MY EVENTS</span>
+                <p class="display-6">@ViewBag.TotalEvents</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card stat-blue">
+            <div class="card-body">
+                <span>TOTAL ENTRIES</span>
+                <p class="display-6">@ViewBag.TotalEnrolments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card stat-orange">
+            <div class="card-body">
+                <span>UPCOMING</span>
+                <p class="display-6">@ViewBag.UpcomingCount</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="section-heading"><div><span class="eyebrow">YOUR RACE CALENDAR</span><h2>My events</h2></div></div>
+<div class="table-responsive dashboard-table">
+<table class="table">
+    <thead><tr><th>Name</th><th>Date</th><th>Location</th><th>Enrolments</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    @foreach (var ev in Model)
+    {
+        <tr>
+            <td>@ev.Name</td>
+            <td>@ev.EventDate.ToString("dd MMM yyyy")</td>
+            <td>@ev.Location</td>
+            <td>@ev.EnrolmentCount</td>
+            <td>@ev.Status</td>
+            <td>
+                <a class="btn btn-sm btn-outline-primary" asp-action="EditEvent" asp-route-id="@ev.Id">Edit</a>
+                <a class="btn btn-sm btn-outline-secondary" asp-action="Categories" asp-route-eventId="@ev.Id">Categories</a>
+                <a class="btn btn-sm btn-outline-info" asp-action="Enrolments" asp-route-eventId="@ev.Id">Enrolments</a>
+                <a class="btn btn-sm btn-outline-warning" asp-action="Results" asp-route-eventId="@ev.Id">Results</a>
+                <form asp-action="DeleteEvent" asp-route-id="@ev.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+@if ((int)(ViewBag.TotalPages ?? 0) > 1)
+{
+    <nav class="mb-3">
+        <ul class="pagination">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == (int)ViewBag.Page ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+<h4>Upcoming Event Dates</h4>
+@if (ViewBag.UpcomingEvents is List<EventDto> upcoming && upcoming.Any())
+{
+    <ul class="list-group mb-3">
+        @foreach (var ev in upcoming)
+        {
+            <li class="list-group-item d-flex justify-content-between">
+                <span>@ev.Name</span>
+                <span class="text-muted">@ev.EventDate.ToString("dd MMM yyyy") — @ev.Location</span>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <div class="alert alert-info">No upcoming events.</div>
+}

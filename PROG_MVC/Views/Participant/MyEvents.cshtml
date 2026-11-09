@@ -1,0 +1,52 @@
+@model List<EnrollmentDto>
+@{
+    ViewData["Title"] = "My Events";
+    var paidEnrolmentIds = ViewBag.PaidEnrolmentIds as HashSet<int> ?? new();
+}
+<h2>My Events</h2>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">You have not enrolled in any events yet.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead><tr><th>Event</th><th>Category</th><th>Status</th><th>Enrolled At</th><th>Actions</th></tr></thead>
+        <tbody>
+        @foreach (var e in Model)
+        {
+            <tr>
+                <td>@e.EventName</td>
+                <td>@e.CategoryName</td>
+                <td><span class="badge @((e.Status ?? "").ToLower() == "confirmed" ? "bg-success" : (e.Status ?? "").ToLower() == "pending" ? "bg-warning" : "bg-secondary")">@e.Status</span></td>
+                <td>@e.EnrolledAt.ToString("dd MMM yyyy")</td>
+                <td>
+                    @if (!string.Equals(e.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                    {
+                        @if (!paidEnrolmentIds.Contains(e.Id))
+                        {
+                            <form asp-action="Pay" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="enrolmentId" value="@e.Id" />
+                                <select name="method" class="form-select form-select-sm d-inline-block" style="width:auto" aria-label="Payment method">
+                                    <option>Card</option><option>EFT</option><option>Cash</option>
+                                </select>
+                                <button class="btn btn-sm btn-success" type="submit">Record payment</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success me-1">Paid</span>
+                        }
+                        <a class="btn btn-sm btn-outline-primary" asp-action="EditEnrolment" asp-route-id="@e.Id">Edit</a>
+                        <form asp-action="CancelEnrolment" asp-route-id="@e.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Cancel</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

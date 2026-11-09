@@ -1,0 +1,53 @@
+@model UserDto
+@{
+    ViewData["Title"] = "Profile";
+}
+<h2>Profile</h2>
+@if (Model is null)
+{
+    <p>Not available.</p>
+}
+else
+{
+    <div class="mb-3">
+        @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+        {
+            <img src="@AssetUrl.Resolve(Model.ProfilePictureUrl)" alt="Profile picture" class="rounded-circle" style="width:120px;height:120px;object-fit:cover" />
+        }
+    </div>
+    <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input name="FullName" value="@Model.FullName" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input name="Email" value="@Model.Email" class="form-control" type="email" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Phone</label>
+            <input name="Phone" value="@Model.Phone" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Date of Birth</label>
+            <input name="DateOfBirth" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" class="form-control" type="date" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Profile Picture</label>
+            <input type="file" name="picture" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp" />
+            <div class="form-text">JPG, PNG, GIF or WebP. Maximum 5 MB.</div>
+        </div>
+        <hr />
+        <h5>Change Password (optional)</h5>
+        <div class="mb-3">
+            <label class="form-label">Current Password</label>
+            <input name="currentPassword" class="form-control" type="password" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">New Password</label>
+            <input name="newPassword" class="form-control" type="password" />
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+    </form>
+}

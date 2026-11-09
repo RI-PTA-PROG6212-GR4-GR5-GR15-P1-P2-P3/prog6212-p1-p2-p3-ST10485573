@@ -42,7 +42,23 @@ public class ResultsController : ControllerBase
             .OrderByDescending(r => r.CapturedAt)
             .ToListAsync();
 
-        return Ok(results.Select(MapResult).ToList());
+        var eventIds = results.Select(r => r.Enrolment.Category.EventId).Distinct().ToList();
+        var counts = await _context.Results
+            .AsNoTracking()
+            .Where(r => eventIds.Contains(r.Enrolment.Category.EventId))
+            .GroupBy(r => r.Enrolment.Category.EventId)
+            .Select(g => new { EventId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.EventId, x => x.Count);
+
+        var dtos = results.Select(MapResult).ToList();
+        foreach (var dto in dtos)
+        {
+            if (counts.TryGetValue(dto.EventId, out var c))
+            {
+                dto.TotalFinishers = c;
+            }
+        }
+        return Ok(dtos);
     }
 
     [AllowAnonymous]
@@ -60,7 +76,12 @@ public class ResultsController : ControllerBase
             .OrderBy(r => r.Position ?? int.MaxValue)
             .ToListAsync();
 
-        return Ok(results.Select(MapResult).ToList());
+        var dtos = results.Select(MapResult).ToList();
+        foreach (var dto in dtos)
+        {
+            dto.TotalFinishers = results.Count;
+        }
+        return Ok(dtos);
     }
 
     [Authorize(Roles = "Organiser")]
@@ -117,7 +138,9 @@ public class ResultsController : ControllerBase
         await _context.SaveChangesAsync();
 
         result.Enrolment = enrollment;
-        return Ok(MapResult(result));
+        var dto = MapResult(result);
+        dto.TotalFinishers = await _context.Results.CountAsync(r => r.Enrolment.Category.EventId == enrollment.Category.EventId);
+        return Ok(dto);
     }
 
     [Authorize(Roles = "Organiser")]
@@ -157,7 +180,9 @@ public class ResultsController : ControllerBase
         result.CapturedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
-        return Ok(MapResult(result));
+        var updatedDto = MapResult(result);
+        updatedDto.TotalFinishers = await _context.Results.CountAsync(r => r.Enrolment.Category.EventId == result.Enrolment.Category.EventId);
+        return Ok(updatedDto);
     }
 
     private static ResultDto MapResult(ResultsEntity result)
@@ -167,9 +192,11 @@ public class ResultsController : ControllerBase
             Id = result.Id,
             EnrollmentId = result.EnrolmentId,
             UserId = result.Enrolment.ParticipantId,
+            EventId = result.Enrolment.Category.EventId,
             CapturedBy = result.CapturedBy,
             UserFullName = result.Enrolment.Participant.FullName,
             EventName = result.Enrolment.Category.Event.Name,
+            EventDate = result.Enrolment.Category.Event.EventDate,
             CategoryName = result.Enrolment.Category.Name,
             FinishTime = result.FinishTime,
             Position = result.Position,

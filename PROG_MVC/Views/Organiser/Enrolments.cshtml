@@ -1,0 +1,27 @@
+@model List<EnrollmentDto>
+@{
+    ViewData["Title"] = "Enrolments";
+}
+<h2>Enrolments</h2>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No enrolments yet.</div>
+}
+else
+{
+    <table class="table">
+        <thead><tr><th>Participant</th><th>Event</th><th>Category</th><th>Status</th><th>Enrolled At</th></tr></thead>
+        <tbody>
+        @foreach (var e in Model)
+        {
+            <tr>
+                <td>@e.UserFullName</td>
+                <td>@e.EventName</td>
+                <td>@e.CategoryName</td>
+                <td><span class="status-@e.Status.ToLower()">@e.Status</span></td>
+                <td>@e.EnrolledAt.ToString("dd MMM yyyy")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

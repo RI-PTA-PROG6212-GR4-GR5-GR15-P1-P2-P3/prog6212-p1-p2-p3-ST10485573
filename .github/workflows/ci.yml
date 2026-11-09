@@ -5,7 +5,7 @@
 # Accessed: 14 October 2026
 # Adapted for: RaceDay docs validation, API restore, build, test, and test-result artifact validation.
 
-name: RaceDay CI/CD
+name: RaceDay Full Stack CI
 
 permissions:
   contents: read
@@ -42,11 +42,13 @@ jobs:
       - name: Restore dependencies
         run: |
           dotnet restore ./PROG_API/PROG_API.csproj
+          dotnet restore ./PROG_MVC/PROG_MVC.csproj
           dotnet restore ./PROG_Test/PROG_Test.csproj
 
-      - name: Build API and Tests
+      - name: Build API, MVC, and Tests
         run: |
           dotnet build ./PROG_API/PROG_API.csproj --configuration Release --no-restore
+          dotnet build ./PROG_MVC/PROG_MVC.csproj --configuration Release --no-restore
           dotnet build ./PROG_Test/PROG_Test.csproj --configuration Release --no-restore
 
       - name: Run API tests

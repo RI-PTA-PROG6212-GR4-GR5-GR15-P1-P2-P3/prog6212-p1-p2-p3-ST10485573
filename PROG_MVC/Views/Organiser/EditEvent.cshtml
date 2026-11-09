@@ -1,0 +1,31 @@
+@model EventCreateRequest
+@{
+    ViewData["Title"] = "Edit Event";
+    var eventId = (int)(ViewBag.EventId ?? 0);
+}
+<h2>Edit Event</h2>
+@if (ViewBag.BannerImageUrl is string banner && !string.IsNullOrEmpty(banner))
+{
+    <img src="@AssetUrl.Resolve(banner)" class="img-fluid mb-3" style="max-height:200px" alt="Current event banner" />
+}
+<form asp-action="EditEvent" asp-route-id="@eventId" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="Name" class="form-label"></label><input asp-for="Name" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Description" class="form-label"></label><textarea asp-for="Description" class="form-control"></textarea></div>
+    <div class="mb-3"><label asp-for="EventDate" class="form-label"></label><input asp-for="EventDate" class="form-control" type="datetime-local" /></div>
+    <div class="mb-3"><label asp-for="RegistrationDeadline" class="form-label"></label><input asp-for="RegistrationDeadline" class="form-control" type="datetime-local" /></div>
+    <div class="mb-3"><label asp-for="Location" class="form-label"></label><input asp-for="Location" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="DistanceKm" class="form-label"></label><input asp-for="DistanceKm" class="form-control" /></div>
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" class="form-select">
+            <option>Draft</option>
+            <option>Published</option>
+            <option>Cancelled</option>
+            <option>Completed</option>
+        </select>
+    </div>
+    <div class="mb-3"><label class="form-label">Replace Banner Image</label><input type="file" name="banner" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp" /><div class="form-text">JPG, PNG, GIF or WebP. Maximum 10 MB.</div></div>
+    <button type="submit" class="btn btn-success">Save</button>
+</form>

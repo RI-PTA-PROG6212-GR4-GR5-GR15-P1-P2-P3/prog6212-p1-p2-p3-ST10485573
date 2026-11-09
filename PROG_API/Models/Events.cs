@@ -38,6 +38,8 @@ public class Events
     [MaxLength(20)]
     public string Status { get; set; } = "Draft";
 
+    public string? BannerImageUrl { get; set; }
+
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

@@ -1,0 +1,44 @@
+@model List<ResultDto>
+@{
+    ViewData["Title"] = "My Results";
+}
+<h2>My Results</h2>
+@if (!Model.Any())
+{
+    <div class="empty-state"><h3>No published results yet</h3><p>Results appear here after an organiser records the finish times for a completed event.</p><a class="btn btn-outline-success rounded-pill" asp-controller="Home" asp-action="Index">Explore events</a></div>
+}
+else
+{
+    <table class="table">
+        <thead><tr><th>Event</th><th>Date</th><th>Category</th><th>Finish Time</th><th>Position</th><th>Status</th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.EventName</td>
+                <td>@r.EventDate.ToString("dd MMM yyyy")</td>
+                <td>@r.CategoryName</td>
+                <td>@(r.FinishTime?.ToString() ?? "-")</td>
+                <td>
+                    @if (r.Position.HasValue)
+                    {
+                        @($"{Ordinal(r.Position.Value)} of {r.TotalFinishers} finishers")
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+                <td><span class="status-@(r.Status.ToLower())">@r.Status</span></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+@functions {
+    string Ordinal(int n)
+    {
+        if (n % 100 is 11 or 12 or 13) return n + "th";
+        return (n % 10) switch { 1 => n + "st", 2 => n + "nd", 3 => n + "rd", _ => n + "th" };
+    }
+}

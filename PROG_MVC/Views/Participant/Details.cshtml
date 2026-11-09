@@ -1,0 +1,39 @@
+@model EventDto
+@{
+    ViewData["Title"] = Model.Name;
+    var categories = ViewBag.Categories as List<EventCategoryDto> ?? new();
+}
+<h2>@Model.Name</h2>
+@if (!string.IsNullOrEmpty(Model.BannerImageUrl))
+{
+    <img src="@AssetUrl.Resolve(Model.BannerImageUrl)" class="img-fluid mb-3" alt="@Model.Name banner" />
+}
+<p>@Model.Description</p>
+<ul>
+    <li><strong>Date:</strong> @Model.EventDate.ToString("dd MMM yyyy")</li>
+    <li><strong>Location:</strong> @Model.Location</li>
+    <li><strong>Distance:</strong> @Model.DistanceKm km</li>
+    <li><strong>Type:</strong> @Model.EventType</li>
+</ul>
+<h4>Categories</h4>
+<table class="table">
+    <thead><tr><th>Name</th><th>Distance</th><th>Price</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var c in categories)
+    {
+        <tr>
+            <td>@c.Name</td>
+            <td>@c.Distance</td>
+            <td>@c.Price</td>
+            <td>
+                <form asp-action="Enrol" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="eventId" value="@Model.Id" />
+                    <input type="hidden" name="categoryId" value="@c.Id" />
+                    <button class="btn btn-sm btn-success" type="submit">Enter Event</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

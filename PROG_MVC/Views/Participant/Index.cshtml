@@ -1,0 +1,51 @@
+@model List<EventDto>
+@{
+    ViewData["Title"] = "Explore races";
+}
+<section class="page-intro">
+    <span class="eyebrow">FIND YOUR NEXT CHALLENGE</span>
+    <h1>Explore races</h1>
+    <p>From a first 5K to a new personal best, there’s a start line for you.</p>
+</section>
+
+<form method="get" class="filter-panel mb-4">
+    <label class="filter-field"><span>Search events</span><input type="text" name="q" value="@ViewBag.Q" class="form-control" placeholder="Race name or keyword" /></label>
+    <label class="filter-field"><span>Province</span><input type="text" name="province" value="@ViewBag.Province" class="form-control" placeholder="e.g. Gauteng" /></label>
+    <label class="filter-field"><span>From</span><input type="date" name="from" value="@(ViewBag.From is DateTime f ? f.ToString("yyyy-MM-dd") : "")" class="form-control" /></label>
+    <label class="filter-field"><span>To</span><input type="date" name="to" value="@(ViewBag.To is DateTime t ? t.ToString("yyyy-MM-dd") : "")" class="form-control" /></label>
+    <button class="btn btn-success rounded-pill px-4 align-self-end" type="submit">Find races <span aria-hidden="true">→</span></button>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="empty-state"><span class="empty-icon">⌕</span><h3>No races found</h3><p>Try another search or clear a filter to see more events.</p><a class="btn btn-outline-success rounded-pill" asp-action="Index">Clear filters</a></div>
+}
+else
+{
+    <div class="event-grid">
+    @foreach (var ev in Model)
+    {
+        <article class="event-card">
+            <div class="event-art @(ev.Id % 3 == 0 ? "event-art-orange" : ev.Id % 3 == 1 ? "event-art-green" : "event-art-blue")">
+                @if (!string.IsNullOrEmpty(ev.BannerImageUrl)) { <img src="@AssetUrl.Resolve(ev.BannerImageUrl)" alt="@ev.Name" /> }
+                else { <span class="art-number">@ev.DistanceKm.ToString("0.#")<small>KM</small></span><span class="art-label">RACEDAY / @ev.EventType.ToUpperInvariant()</span> }
+                <span class="date-chip"><strong>@ev.EventDate.ToString("dd")</strong><span>@ev.EventDate.ToString("MMM").ToUpperInvariant()</span></span>
+            </div>
+            <div class="event-content">
+                <div class="event-meta"><span>@ev.Location</span><span>@ev.DistanceKm.ToString("0.#") km</span></div>
+                <h3>@ev.Name</h3><p>@ev.Description</p>
+                <div class="event-footer"><span class="entry-count">@ev.EnrolmentCount entered</span><a class="arrow-link" asp-action="Details" asp-route-id="@ev.Id">View race <span aria-hidden="true">↗</span></a></div>
+            </div>
+        </article>
+    }
+    </div>
+}
+@if ((int)(ViewBag.TotalPages ?? 0) > 1)
+{
+    <nav class="mt-4" aria-label="Event pages"><ul class="pagination">
+    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+    {
+        <li class="page-item @(i == (int)ViewBag.Page ? "active" : "")"><a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-q="@ViewBag.Q" asp-route-province="@ViewBag.Province" asp-route-from="@(ViewBag.From is DateTime fromDate ? fromDate.ToString("yyyy-MM-dd") : "")" asp-route-to="@(ViewBag.To is DateTime toDate ? toDate.ToString("yyyy-MM-dd") : "")">@i</a></li>
+    }
+    </ul></nav>
+}

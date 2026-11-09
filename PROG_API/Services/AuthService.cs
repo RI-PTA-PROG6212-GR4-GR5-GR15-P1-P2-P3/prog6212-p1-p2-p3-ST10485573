@@ -107,14 +107,41 @@ public class AuthService
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
 
-        if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
+        if (user.LockoutEndUtc is { } activeLock && activeLock > DateTime.UtcNow)
         {
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new UnauthorizedAccessException(
+                "Account temporarily locked after too many failed attempts. Try again later.");
         }
 
         if (!user.IsActive)
         {
             throw new UnauthorizedAccessException("This account is inactive.");
+        }
+
+        if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
+        {
+            user.FailedLoginCount++;
+            if (user.FailedLoginCount >= MaxFailedLoginsBeforeLockout)
+            {
+                user.LockoutEndUtc = DateTime.UtcNow.AddMinutes(LockoutMinutes);
+            }
+
+            await _context.SaveChangesAsync(ct);
+
+            if (user.LockoutEndUtc is { } lockoutEnd)
+            {
+                throw new UnauthorizedAccessException(
+                    $"Account temporarily locked after {MaxFailedLoginsBeforeLockout} failed attempts. Try again after {lockoutEnd:HH:mm} UTC.");
+            }
+
+            throw new UnauthorizedAccessException("Invalid credentials.");
+        }
+
+        if (user.LockoutEndUtc is not null || user.FailedLoginCount != 0)
+        {
+            user.LockoutEndUtc = null;
+            user.FailedLoginCount = 0;
+            await _context.SaveChangesAsync(ct);
         }
 
         var expiresAt = DateTime.UtcNow.AddHours(2);
@@ -127,6 +154,9 @@ public class AuthService
             User = ToUserDto(user)
         };
     }
+
+    private const int MaxFailedLoginsBeforeLockout = 3;
+    private const int LockoutMinutes = 15;
 
     public async Task<UserDto> GetUserAsync(int userId, CancellationToken ct = default)
     {
@@ -150,6 +180,17 @@ public class AuthService
         if (!string.IsNullOrWhiteSpace(request.FullName))
         {
             user.FullName = request.FullName.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            var normalized = request.Email.Trim();
+            var exists = await _context.Users.AnyAsync(u => u.Id != userId && u.Email.ToLower() == normalized.ToLower(), ct);
+            if (exists)
+            {
+                throw new ValidationException("A user with this email already exists.");
+            }
+            user.Email = normalized;
         }
 
         if (request.Phone is not null)
@@ -178,6 +219,7 @@ public class AuthService
             Role = user.Role,
             Phone = user.Phone,
             DateOfBirth = user.DateOfBirth,
+            ProfilePictureUrl = user.ProfilePictureUrl,
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
